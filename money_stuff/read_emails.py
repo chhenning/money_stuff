@@ -5,6 +5,12 @@ import email.utils
 from datetime import datetime, timezone
 from email.header import decode_header
 
+from dotenv import load_dotenv
+
+from loguru import logger
+
+load_dotenv()
+
 
 def extract_html(msg):
     """
@@ -66,18 +72,18 @@ def decode_subject(header_value):
 
 
 def main():
-    mbox_file = "data/Money Stuff.mbox"
-    output_file = "data/emails.json"
+    mbox_file = os.getenv("MBOX_FILENAME")
+    output_file = os.getenv("EMAIL_JSON_OUT_FILENAME")
 
     if not os.path.exists(mbox_file):
-        print(f"Error: File not found at {mbox_file}")
+        logger.error(f"Error: File not found at {mbox_file}")
         return
 
-    print(f"Opening {mbox_file}...")
+    logger.info(f"Opening {mbox_file}...")
 
     try:
         mbox = mailbox.mbox(mbox_file)
-        print(f"Successfully opened mbox.")
+        logger.info(f"Successfully opened mbox.")
 
         emails_data = []
         count = 0
@@ -99,18 +105,18 @@ def main():
                 )
 
             if count % 100 == 0:
-                print(f"Processed {count} emails...")
+                logger.info(f"Processed {count} emails...")
 
-        print(f"\nTotal emails processed: {count}")
-        print(f"Extracted {len(emails_data)} emails with HTML content.")
+        logger.info(f"Total emails processed: {count}")
+        logger.info(f"Extracted {len(emails_data)} emails with HTML content.")
 
-        print(f"Saving to {output_file}...")
+        logger.info(f"Saving to {output_file}...")
         with open(output_file, "w") as f:
             json.dump(emails_data, f, indent=4)
-        print("Done.")
+        logger.info("Done.")
 
     except Exception as e:
-        print(f"An error occurred: {e}")
+        logger.info(f"An error occurred: {e}")
 
 
 if __name__ == "__main__":
