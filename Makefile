@@ -1,4 +1,4 @@
-.PHONY: setup read_emails parse_newsletters populate_db stats
+.PHONY: setup read_emails parse_newsletters populate_db stats run
 
 setup:
 	@. ./scripts/setup.sh && clear
@@ -14,3 +14,6 @@ populate_db:
 
 stats:
 	@. ./scripts/setup.sh && clear && python money_stuff/db_stats.py
+
+run:
+	@. ./scripts/setup.sh && clear && streamlit run money_stuff/app.py

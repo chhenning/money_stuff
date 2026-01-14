@@ -3,13 +3,14 @@ End-to-end RAG pipeline and analysis engine for financial newsletters using LLMs
 
 # WIP
 
-[x] Read emails.
+- [x] Read emails.
+- [x] Parse newsletter.
+- [x] Add newsletters to sqlite database.
+- [x] Populate sqlite db including script for stats.
+- [x] Add `streamlit` app.
+- [ ] NER
 
-[x] Parse newsletter.
-
-[x] Add newsletters to sqlite database.
-
-[x] Populate sqlite db including script for stats.
+# Stats
 
 ```
 --- Database Statistics ---
@@ -30,6 +31,3 @@ Avg Word Count/Article: 783.50
 4388 words | Silicon Valley Bank
 4286 words | Oh Sam
 ```
-
-
-[] todo
