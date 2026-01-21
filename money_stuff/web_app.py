@@ -1,18 +1,21 @@
 from datetime import datetime
 import os
+import sqlite3
 
 from dotenv import load_dotenv
 
 import pandas as pd
 
-import sqlite3
+from spacy import displacy
 
 import streamlit as st
+
+from money_stuff.db import get_entities
 
 load_dotenv()
 
 
-DB_FILE = os.getenv("DB_FILENAME")
+DB_FILE = os.getenv("DB_FILENAME", "")
 
 
 def get_connection():
@@ -30,22 +33,24 @@ def main():
 
     # Get date range
     try:
-        min_date_str = pd.read_sql_query(
-            "SELECT min(sent_date) FROM newsletter", conn
-        ).iloc[0, 0]
-        max_date_str = pd.read_sql_query(
-            "SELECT max(sent_date) FROM newsletter", conn
-        ).iloc[0, 0]
+        min_date_str = str(
+            pd.read_sql_query("SELECT min(sent_date) FROM newsletter", conn).iloc[0, 0]
+        )
+        max_date_str = str(
+            pd.read_sql_query("SELECT max(sent_date) FROM newsletter", conn).iloc[0, 0]
+        )
 
         if min_date_str and max_date_str:
             min_date = pd.to_datetime(min_date_str).date()
             max_date = pd.to_datetime(max_date_str).date()
 
-            start_date, end_date = st.sidebar.date_input(
-                "Date Range",
-                value=(min_date, max_date),
-                min_value=min_date,
-                max_value=max_date,
+            start_date, end_date = tuple(
+                st.sidebar.date_input(
+                    "Date Range",
+                    value=(min_date, max_date),
+                    min_value=min_date,
+                    max_value=max_date,
+                )
             )
         else:
             st.sidebar.warning("No data found for date range.")
@@ -122,7 +127,7 @@ def main():
 
             # Fetch articles for this newsletter
             articles = pd.read_sql_query(
-                "SELECT title, text FROM article WHERE newsletter_id = ?",
+                "SELECT id, title, text, ml_text FROM article WHERE newsletter_id = ?",
                 conn,
                 params=(row["id"],),
             )
@@ -130,6 +135,22 @@ def main():
             for a_idx, a_row in articles.iterrows():
                 with st.expander(a_row["title"]):
                     st.markdown(a_row["text"].replace("$", "\\$"))
+                    st.divider()
+
+                    article_id = a_row["id"]
+                    ents = get_entities(article_id)
+                    ents = [
+                        {
+                            "start": e["start_char"],
+                            "end": e["end_char"],
+                            "label": e["label"],
+                        }
+                        for e in ents
+                    ]
+                    doc = {"text": a_row["ml_text"], "ents": ents}
+
+                    html = displacy.render(doc, style="ent", manual=True)
+                    st.markdown(html, unsafe_allow_html=True)
 
             st.divider()
 

@@ -7,10 +7,10 @@ import pandas as pd
 
 load_dotenv()
 
-DB_FILE = os.getenv("DB_FILENAME")
+DB_FILE = os.getenv("DB_FILENAME", "")
 
 
-def main():
+def db_stats():
     try:
         conn = sqlite3.connect(DB_FILE)
     except sqlite3.Error as e:
@@ -72,7 +72,3 @@ def main():
         print(f"{row['word_count']} words | {row['title']}")
 
     conn.close()
-
-
-if __name__ == "__main__":
-    main()

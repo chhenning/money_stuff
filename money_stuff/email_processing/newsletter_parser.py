@@ -2,7 +2,7 @@ from dataclasses import asdict
 from datetime import datetime
 import json
 import os
-from typing import List, Optional
+from typing import List, Dict
 
 from bs4 import BeautifulSoup, Tag
 
@@ -17,14 +17,14 @@ from money_stuff.data_model import Newsletter, Article
 load_dotenv()
 
 
-def json_serial(obj):
+def _json_serial(obj):
     """JSON serializer for objects not serializable by default json code"""
     if isinstance(obj, datetime):
         return obj.isoformat()
     raise TypeError(f"Type {type(obj)} not serializable")
 
 
-def parse_newsletter_html(html_content: str) -> List[Article]:
+def _parse_newsletter_html(html_content: str) -> List[Article]:
     """
     Parses the HTML content of a newsletter and extracts articles separated by <h2> tags.
     """
@@ -74,26 +74,17 @@ def parse_newsletter_html(html_content: str) -> List[Article]:
     return articles
 
 
-def process_emails(input_file: str, output_file: str):
-    try:
-        with open(input_file, "r") as f:
-            raw_emails = json.load(f)
-    except FileNotFoundError:
-        logger.error(f"Input file not found: {input_file}")
-        return
-    except json.JSONDecodeError:
-        logger.error(f"Error decoding JSON from: {input_file}")
-        return
+def process_emails(raw_email_data: List[Dict]) -> List[Newsletter]:
 
-    logger.info(f"Processing {len(raw_emails)} emails...")
+    logger.info(f"Processing {len(raw_email_data)} emails...")
 
     newsletters = []
     total_articles = 0
 
-    for email_data in raw_emails:
-        timestamp_str = email_data.get("timestamp")
-        subject = email_data.get("subject")
-        content = email_data.get("content")
+    for email_data in raw_email_data:
+        timestamp_str = email_data.get("timestamp", "")
+        subject = email_data.get("subject", "")
+        content = email_data.get("content", "")
 
         if not content:
             continue
@@ -106,7 +97,7 @@ def process_emails(input_file: str, output_file: str):
             logger.warning(f"Could not parse timestamp for email: {subject}")
             continue
 
-        articles = parse_newsletter_html(content)
+        articles = _parse_newsletter_html(content)
         total_articles += len(articles)
 
         newsletter = Newsletter(sent_date=sent_date, subject=subject, articles=articles)
@@ -125,20 +116,22 @@ def process_emails(input_file: str, output_file: str):
         for art in first_nl.articles:
             logger.info(f"Article: {art.title}")
 
-    # Convert to dicts for JSON serialization
-    newsletters_dict = [asdict(nl) for nl in newsletters]
+    save_to_json: bool = (
+        True if os.getenv("SAVE_NEWSLETTER_TO_JSON", "") == "True" else False
+    )
 
-    logger.info(f"Saving parsed newsletters to {output_file}...")
-    try:
-        with open(output_file, "w") as f:
-            json.dump(newsletters_dict, f, indent=4, default=json_serial)
-        logger.info("Done.")
-    except Exception as e:
-        logger.error(f"Failed to save output: {e}")
+    if save_to_json:
+        output_file = os.getenv("NEWSLETTER_JSON_OUT_FILENAME", "")
+        logger.info(f"Saving parsed newsletters to {output_file}...")
 
+        # Convert to dicts for JSON serialization
+        newsletters_dict = [asdict(nl) for nl in newsletters]
 
-if __name__ == "__main__":
-    input_filename = os.getenv("EMAIL_JSON_OUT_FILENAME")
-    output_filename = os.getenv("NEWSLETTER_JSON_OUT_FILENAME")
+        try:
+            with open(output_file, "w") as f:
+                json.dump(newsletters_dict, f, indent=4, default=_json_serial)
+            logger.info("Done.")
+        except Exception as e:
+            logger.error(f"Failed to save output: {e}")
 
-    process_emails(input_filename, output_filename)
+    return newsletters

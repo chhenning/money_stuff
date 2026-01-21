@@ -1,19 +1,14 @@
-.PHONY: setup read_emails parse_newsletters populate_db stats run
+.PHONY: setup connect_to_db ingest run_app
 
 setup:
 	@. ./scripts/setup.sh && clear
 
-read_emails:
-	@. ./scripts/setup.sh && clear && python money_stuff/read_emails.py
+connect_to_db:
+	@. ./scripts/connect_to_db.sh
 
-parse_newsletters:
-	@. ./scripts/setup.sh && clear && python money_stuff/newsletter_parser.py
+ingest:
+	@. ./scripts/setup.sh && clear && python money_stuff/ingest.py
 
-populate_db:
-	@. ./scripts/setup.sh && clear && python money_stuff/populate_db.py
+run_app:
+	@. ./scripts/setup.sh && clear && streamlit run money_stuff/web_app.py
 
-stats:
-	@. ./scripts/setup.sh && clear && python money_stuff/db_stats.py
-
-run:
-	@. ./scripts/setup.sh && clear && streamlit run money_stuff/app.py

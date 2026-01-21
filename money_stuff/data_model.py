@@ -8,8 +8,10 @@ from typing import List, Optional
 class Article:
     title: str
     text: str
+
     id: Optional[int] = None
     html: Optional[str] = None
+    ml_text: Optional[str] = None
 
 
 @dataclass

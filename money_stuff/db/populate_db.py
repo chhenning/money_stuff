@@ -2,40 +2,23 @@ import sqlite3
 import json
 import os
 from datetime import datetime
+from typing import List
 
 from dotenv import load_dotenv
 
 from loguru import logger
 
+from money_stuff.data_model import Newsletter
+from money_stuff.utils import clean_markdown_for_ml
+
 load_dotenv()
 
-DB_FILE = os.getenv("DB_FILENAME")
-SQL_FILE = "sql/data_model.sql"
-DATA_FILE = os.getenv("NEWSLETTER_JSON_OUT_FILENAME")
+DB_FILE = os.getenv("DB_FILENAME", "")
+
+DATA_FILE = os.getenv("NEWSLETTER_JSON_OUT_FILENAME", "")
 
 
-def init_db():
-    if os.path.exists(DB_FILE):
-        logger.info(f"Removing existing database at {DB_FILE}...")
-        os.remove(DB_FILE)  # Start fresh for now, or use IF NOT EXISTS in SQL
-
-    conn = sqlite3.connect(DB_FILE)
-    with open(SQL_FILE, "r") as f:
-        schema = f.read()
-    conn.executescript(schema)
-    conn.commit()
-
-    logger.info(f"Initialized database at {DB_FILE}.")
-    return conn
-
-
-def populate_db(conn):
-    try:
-        with open(DATA_FILE, "r") as f:
-            newsletters = json.load(f)
-    except FileNotFoundError:
-        print(f"Error: {DATA_FILE} not found.")
-        return
+def populate_db(conn, newsletters: List[Newsletter]):
 
     cursor = conn.cursor()
 
@@ -52,13 +35,13 @@ def populate_db(conn):
                 INSERT OR IGNORE INTO newsletter (sent_date, subject)
                 VALUES (?, ?)
             """,
-                (nl["sent_date"], nl["subject"]),
+                (nl.sent_date, nl.subject),
             )
 
             # Check if inserted or ignored
             cursor.execute(
                 "SELECT id FROM newsletter WHERE sent_date = ? AND subject = ?",
-                (nl["sent_date"], nl["subject"]),
+                (nl.sent_date, nl.subject),
             )
             row = cursor.fetchone()
             if row:
@@ -66,26 +49,25 @@ def populate_db(conn):
                 count_newsletters += 1
 
                 # Insert articles
-                for art in nl.get("articles", []):
+                for art in nl.articles:
                     cursor.execute(
                         """
-                        INSERT INTO article (newsletter_id, title, text)
-                        VALUES (?, ?, ?)
+                        INSERT INTO article (newsletter_id, title, text, ml_text)
+                        VALUES (?, ?, ?, ?)
                     """,
-                        (newsletter_id, art["title"], art["text"]),
+                        (
+                            newsletter_id,
+                            art.title,
+                            art.text,
+                            clean_markdown_for_ml(art.text),
+                        ),
                     )
                     count_articles += 1
 
         except sqlite3.Error as e:
-            logger.error(f"Error inserting newsletter {nl.get('subject')}: {e}")
+            logger.error(f"Error inserting newsletter {nl.subject}: {e}")
 
     conn.commit()
     logger.info(
         f"Successfully inserted {count_newsletters} newsletters and {count_articles} articles."
     )
-
-
-if __name__ == "__main__":
-    conn = init_db()
-    populate_db(conn)
-    conn.close()

@@ -10,7 +10,8 @@ CREATE TABLE IF NOT EXISTS article (
   id              INTEGER PRIMARY KEY,
   newsletter_id   INTEGER REFERENCES newsletter(id) ON DELETE CASCADE,
   title TEXT  NOT NULL, 
-  text  TEXT  NOT NULL
+  text  TEXT  NOT NULL, -- markdown
+  ml_text TEXT NULL
 );
 
 CREATE VIRTUAL TABLE IF NOT EXISTS article_fts
@@ -22,13 +23,13 @@ USING fts5(
 );
 
 
-CREATE TABLE IF NOT EXISTS spacy_entity (
+CREATE TABLE IF NOT EXISTS article_ner (
     id           INTEGER PRIMARY KEY,
     article_id   INTEGER REFERENCES article(id) ON DELETE CASCADE,
-    entity_name  TEXT NOT NULL,
-    entity_label TEXT NOT NULL,
-    entity_start INTEGER NOT NULL,
-    entity_end   INTEGER NOT NULL
+    text         TEXT NOT NULL,
+    label        TEXT NOT NULL,
+    start_char   INTEGER NOT NULL,
+    end_char     INTEGER NOT NULL
 );
 
 

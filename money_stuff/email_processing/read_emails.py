@@ -1,9 +1,10 @@
-import mailbox
-import os
+from datetime import datetime, timezone
 import json
 import email.utils
-from datetime import datetime, timezone
 from email.header import decode_header
+import mailbox
+import os
+from typing import Optional, List, Dict
 
 from dotenv import load_dotenv
 
@@ -71,9 +72,8 @@ def decode_subject(header_value):
     return "".join(subject_parts)
 
 
-def main():
-    mbox_file = os.getenv("MBOX_FILENAME")
-    output_file = os.getenv("EMAIL_JSON_OUT_FILENAME")
+def read_emails() -> Optional[List[Dict]]:
+    mbox_file = os.getenv("MBOX_FILENAME", "")
 
     if not os.path.exists(mbox_file):
         logger.error(f"Error: File not found at {mbox_file}")
@@ -110,14 +110,18 @@ def main():
         logger.info(f"Total emails processed: {count}")
         logger.info(f"Extracted {len(emails_data)} emails with HTML content.")
 
-        logger.info(f"Saving to {output_file}...")
-        with open(output_file, "w") as f:
-            json.dump(emails_data, f, indent=4)
-        logger.info("Done.")
+        save_to_json: bool = (
+            True if os.getenv("SAVE_EMAIL_TO_JSON", "") == "True" else False
+        )
+
+        if save_to_json:
+            output_file = os.getenv("EMAIL_JSON_OUT_FILENAME", "")
+            logger.info(f"Saving to {output_file}...")
+            with open(output_file, "w") as f:
+                json.dump(emails_data, f, indent=4)
+            logger.info("Done.")
+
+        return emails_data
 
     except Exception as e:
         logger.info(f"An error occurred: {e}")
-
-
-if __name__ == "__main__":
-    main()

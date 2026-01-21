@@ -31,3 +31,19 @@ Avg Word Count/Article: 783.50
 4388 words | Silicon Valley Bank
 4286 words | Oh Sam
 ```
+
+# Troubleshooting
+
+## Spacy
+
+When using `uv` there is no standalone `pip` tool. Below is how to circumvent the issue.
+
+```sh
+uv add "spacy[transformers]"
+
+uv pip install \
+  https://github.com/explosion/spacy-models/releases/download/en_core_web_trf-3.8.0/en_core_web_trf-3.8.0-py3-none-any.whl
+
+# sanity check
+uv run -- python -c "import spacy; spacy.load('en_core_web_trf'); print('ok')"
+```
