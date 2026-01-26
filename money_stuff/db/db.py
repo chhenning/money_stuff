@@ -7,7 +7,8 @@ from typing import List, Dict, Any
 load_dotenv()
 
 SQL_FILE = "sql/data_model.sql"
-DB_FILE = os.getenv("DB_FILENAME", "newsletters.db")
+DB_FILE = os.getenv("DB_FILENAME", "")
+assert DB_FILE
 
 
 def init_db():
@@ -131,6 +132,7 @@ def save_entities(entities: List[Dict[str, Any]]):
         logger.error(f"Error saving entities: {e}")
     finally:
         conn.close()
+
 
 def get_entities(article_id: int) -> List[Dict[str, Any]]:
     """Loads all entities for a given article from the database."""

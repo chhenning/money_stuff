@@ -4,7 +4,7 @@ setup:
 	@. ./scripts/setup.sh && clear
 
 connect_to_db:
-	@. ./scripts/connect_to_db.sh
+	@. ./scripts/setup.sh && clear && ./scripts/connect_to_db.sh
 
 ingest:
 	@. ./scripts/setup.sh && clear && python money_stuff/ingest.py

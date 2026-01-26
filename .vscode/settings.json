@@ -13,15 +13,6 @@
     "files.autoSave": "onFocusChange",
     "workbench.editor.showTabs": "multiple",
     "python.analysis.autoImportCompletions": false,
-    "[javascript]": {
-        "editor.formatOnSave": true,
-        "editor.defaultFormatter": "esbenp.prettier-vscode"
-    },
-    "[css]": {
-        "editor.suggest.insertMode": "replace",
-        "editor.formatOnSave": true,
-        "editor.defaultFormatter": "esbenp.prettier-vscode"
-    },
     "[html]": {
         "editor.suggest.insertMode": "replace",
         "editor.formatOnSave": true,
@@ -32,5 +23,6 @@
         "editor.defaultFormatter": "ms-python.black-formatter"
     },
     "jupyter.notebookFileRoot": "${workspaceFolder}",
-    "workbench.editor.enablePreview": false
+    "workbench.editor.enablePreview": false,
+    "python.analysis.typeCheckingMode": "off"
 }

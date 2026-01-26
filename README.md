@@ -8,7 +8,12 @@ End-to-end RAG pipeline and analysis engine for financial newsletters using LLMs
 - [x] Add newsletters to sqlite database.
 - [x] Populate sqlite db including script for stats.
 - [x] Add `streamlit` app.
-- [ ] NER
+- [] NER
+    - [x] Run Spacy to extract entities
+    - [ ] see [ner steps](ner.md)
+- [] RAG Pipeline
+    - [] Text Chunking for each article
+
 
 # Stats
 
@@ -31,6 +36,19 @@ Avg Word Count/Article: 783.50
 4388 words | Silicon Valley Bank
 4286 words | Oh Sam
 ```
+
+# RAG Pipeline
+
+Using
+
+```sh
+llama-server \
+  --model ~/.cache/llama.cpp/Qwen3-30B-A3B-Instruct-2507-Q8_0.gguf \
+  --n-gpu-layers 999 \
+  --port 32000
+```
+
+
 
 # Troubleshooting
 
